@@ -1,0 +1,8 @@
+ticker,name,shares,buy_price,sector
+RELIANCE,Reliance Industries,10,2450.50,Energy
+TCS,Tata Consultancy Services,5,3200.00,IT
+HDFCBANK,HDFC Bank,20,1550.00,Finance
+INFY,Infosys,15,1400.00,IT
+ICICIBANK,ICICI Bank,25,850.00,Finance
+TITAN,Titan Company,8,2500.00,Consumer
+BHARTIARTL,Bharti Airtel,50,750.00,Telecom
