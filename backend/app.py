@@ -36,25 +36,30 @@ async def process_query(request: QueryRequest):
     weekly = engine.get_weekly_performance()
     summary['weekly_performance'] = weekly
     
-    # ADVANCED OLLAMA CHECK
+    # ADVANCED LLM CHECK
+    gemini_key = os.getenv("GEMINI_API_KEY")
     ollama_ready = False
-    try:
-        async with httpx.AsyncClient(timeout=1.0) as client:
-            resp = await client.get("http://localhost:11434/api/tags")
-            ollama_ready = (resp.status_code == 200)
-    except:
-        ollama_ready = False
+    
+    if not gemini_key:
+        try:
+            async with httpx.AsyncClient(timeout=1.0) as client:
+                resp = await client.get("http://localhost:11434/api/tags")
+                ollama_ready = (resp.status_code == 200)
+        except:
+            ollama_ready = False
+    else:
+        ollama_ready = True # Gemini is ready if key is there
 
-    if ollama_ready:
+    if ollama_ready or gemini_key:
         llm_answer = await ollama.generate_answer(query, summary)
-        if "Ollama Connection Error" not in llm_answer:
+        if "Error" not in llm_answer:
             tickers = [h['ticker'] for h in summary['holdings']]
-            citations = [t for t in tickers if t in llm_answer.upper()] or ["Ollama (Llama 3)"]
+            citations = [t for t in tickers if t in llm_answer.upper()] or ["AI Intelligence"]
             return QueryResponse(answer=llm_answer, confidence=0.95, citations=citations, data=summary)
         else:
             # Important: Tell the user exactly what the connection error is
-            answer = f"Found a problem connecting to Ollama: {llm_answer}. Please ensure the model is pulled and 'ollama serve' is active."
-            citations = ["Ollama Debugger"]
+            answer = f"Found a problem: {llm_answer}. If running locally, ensure 'ollama serve' is active."
+            citations = ["Debug Assistant"]
             return QueryResponse(answer=answer, confidence=0.0, citations=citations)
 
     # REFINED FALLBACK (More helpful than before)
@@ -97,4 +102,5 @@ async def get_sectors():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
